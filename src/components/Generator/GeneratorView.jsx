@@ -8,6 +8,7 @@ const GeneratorView = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [manualGtin, setManualGtin] = useState('');
+  const [showFullScreen, setShowFullScreen] = useState(false);
 
   const generateBarcode = (gtin) => {
     const canvas = document.createElement('canvas');
@@ -167,8 +168,20 @@ const GeneratorView = () => {
   const handlePrint = () => {
     if (!barcodeData) return;
     
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+    // Create a hidden iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    
+    // Write content to the iframe
+    const printDoc = iframe.contentWindow.document;
+    printDoc.open();
+    printDoc.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -179,21 +192,23 @@ const GeneratorView = () => {
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              min-height: 100vh;
+              height: 100vh;
               margin: 0;
               font-family: Arial, sans-serif;
             }
             img {
-              max-width: 100%;
+              max-width: 300px;
               height: auto;
             }
             h2 {
               margin: 1rem 0;
+              text-align: center;
+              font-size: 24px;
             }
-            @media print {
-              body {
-                padding: 20px;
-              }
+            p {
+              text-align: center;
+              font-size: 16px;
+              color: #333;
             }
           </style>
         </head>
@@ -205,10 +220,23 @@ const GeneratorView = () => {
         </body>
       </html>
     `);
-    printWindow.document.close();
+    printDoc.close();
+
+    // Trigger print
     setTimeout(() => {
-      printWindow.print();
-    }, 250);
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error('Print error:', err);
+        setError('Printing failed on this device');
+      } finally {
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 2000);
+      }
+    }, 500);
   };
 
   return (
@@ -313,12 +341,79 @@ const GeneratorView = () => {
             </div>
 
             {/* Barcode Actions */}
-            <div className="barcode-actions">
-              <button onClick={handleDownload} className="action-btn download">
-                <span>💾</span> Download
+            <div className="barcode-actions" style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              marginTop: '1.5rem',
+              justifyContent: 'center'
+            }}>
+              <button 
+                onClick={handleDownload} 
+                className="action-btn" 
+                style={{ 
+                  flex: 1, 
+                  padding: '12px 8px', 
+                  fontSize: '12px', 
+                  background: '#3b82f6', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)'
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>💾</span>
+                <span>Save</span>
               </button>
-              <button onClick={handlePrint} className="action-btn print">
-                <span>🖨️</span> Print
+              
+              <button 
+                onClick={handlePrint} 
+                className="action-btn" 
+                style={{ 
+                  flex: 1, 
+                  padding: '12px 8px', 
+                  fontSize: '12px', 
+                  background: '#10b981', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)'
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>🖨️</span>
+                <span>Print</span>
+              </button>
+              
+              <button 
+                onClick={() => setShowFullScreen(true)} 
+                className="action-btn" 
+                style={{ 
+                  flex: 1, 
+                  padding: '12px 8px', 
+                  fontSize: '12px', 
+                  background: '#8b5cf6', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 10px rgba(139, 92, 246, 0.3)'
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>👁️</span>
+                <span>View</span>
               </button>
             </div>
 
@@ -331,6 +426,81 @@ const GeneratorView = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      
+      {/* Full Screen Modal */}
+      {showFullScreen && barcodeData && (
+        <div 
+          className="modal-overlay" 
+          onClick={() => setShowFullScreen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem'
+          }}
+        >
+          <div 
+            className="fullscreen-content" 
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'white',
+              padding: '2rem',
+              borderRadius: '20px',
+              maxWidth: '90vw',
+              maxHeight: '80vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1rem',
+              position: 'relative'
+            }}
+          >
+            <button
+              onClick={() => setShowFullScreen(false)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: '#f3f4f6',
+                border: 'none',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                cursor: 'pointer',
+                fontSize: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ✕
+            </button>
+            
+            <h2 style={{ margin: 0, textAlign: 'center' }}>{barcodeData.product.productName}</h2>
+            
+            <img 
+              src={barcodeData.barcodeImage} 
+              alt="Full Screen Barcode"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '50vh',
+                objectFit: 'contain'
+              }} 
+            />
+            
+            <p style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'monospace', margin: 0 }}>
+              {barcodeData.gtin}
+            </p>
           </div>
         </div>
       )}

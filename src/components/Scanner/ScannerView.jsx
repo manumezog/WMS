@@ -7,6 +7,7 @@ import QuickStart from '../QuickStart/QuickStart';
 import useStore from '../../store/useStore';
 import { getProductByGtin, getInventoryByGtin } from '../../services/firebaseService';
 import './Scanner.css';
+import { BrowserMultiFormatReader } from '@zxing/library';
 
 const ScannerView = () => {
   const [scannedProduct, setScannedProduct] = useState(null);
@@ -107,11 +108,12 @@ const ScannerView = () => {
     if (!file) return;
     
     try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('temp-scanner');
-      const result = await scanner.scanFile(file, true);
+      const codeReader = new BrowserMultiFormatReader();
+      const imageUrl = URL.createObjectURL(file);
+      const result = await codeReader.decodeFromImageUrl(imageUrl);
+      
       if (result) {
-        handleScan(result);
+        handleScan(result.getText());
       }
     } catch (err) {
       console.error('Failed to scan image:', err);

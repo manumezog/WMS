@@ -16,11 +16,10 @@ const BarcodeScanner = ({ onScan }) => {
       try {
         html5QrCodeRef.current = new Html5Qrcode("barcode-scanner");
         
-        // Simpler, more compatible config
         const config = {
           fps: 10,
           qrbox: { width: 250, height: 150 },
-          formatsToSupport: [0, 1] // EAN_13, EAN_8
+          // Supported formats: ALL (by not specifying formatsToSupport)
         };
 
         // Use 'environment' for rear camera on mobile
