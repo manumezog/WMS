@@ -7,7 +7,7 @@ import QuickStart from '../QuickStart/QuickStart';
 import useStore from '../../store/useStore';
 import { getProductByGtin, getInventoryByGtin } from '../../services/firebaseService';
 import './Scanner.css';
-import { BrowserMultiFormatReader } from '@zxing/library';
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 const ScannerView = () => {
   const [scannedProduct, setScannedProduct] = useState(null);
@@ -108,8 +108,24 @@ const ScannerView = () => {
     if (!file) return;
     
     try {
-      const codeReader = new BrowserMultiFormatReader();
+      const hints = new Map();
+      const formats = [
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.QR_CODE,
+        BarcodeFormat.ITF
+      ];
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      
+      const codeReader = new BrowserMultiFormatReader(hints);
       const imageUrl = URL.createObjectURL(file);
+      
+      // Try decoding with hints
       const result = await codeReader.decodeFromImageUrl(imageUrl);
       
       if (result) {
