@@ -28,22 +28,30 @@ const ActionPanel = ({ product, onActionComplete }) => {
 
   const handleQuantityChange = (e) => {
     const val = e.target.value;
-    setInputValue(val);
     
-    // Update store immediately for valid numbers, but allow empty/partial input in UI
-    if (val !== '') {
-      const num = parseInt(val);
-      if (!isNaN(num)) {
-        // Store clamps 1-100 automatically
-        setQuantity(num);
+    // Only allow digits and empty string (prevent negative signs, decimals, etc.)
+    if (val === '' || /^\d+$/.test(val)) {
+      setInputValue(val);
+      
+      // Update store immediately for valid numbers
+      // We don't update if empty, allowing the user to clear the field
+      if (val !== '') {
+        const num = parseInt(val);
+        if (!isNaN(num)) {
+          // Store clamps 1-100 automatically
+          setQuantity(num);
+        }
       }
     }
   };
-  
+
   const handleBlur = () => {
-    // On blur, force UI to match the valid store value (handling empty/invalid cases)
+    // On blur, reset to the valid store value
+    // This handles cases like empty string or invalid numbers
     setInputValue(quantity.toString());
   };
+  
+
 
   const handleAction = async (actionType) => {
     if (!product) return;
@@ -118,13 +126,13 @@ const ActionPanel = ({ product, onActionComplete }) => {
               −
             </button>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               className="quantity-input"
               value={inputValue}
               onChange={handleQuantityChange}
               onBlur={handleBlur}
-              min="1"
-              max="100"
             />
             <button 
               className="qty-btn plus"
