@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import BarcodeScanner from './BarcodeScanner';
+import ZXingScanner from './ZXingScanner';
 import ProductCard from './ProductCard';
 import ActionPanel from './ActionPanel';
 import QuickStart from '../QuickStart/QuickStart';
@@ -166,7 +167,7 @@ const ScannerView = () => {
       {!scannedProduct ? (
         <>
           {!manualMode ? (
-            <BarcodeScanner onScan={handleScan} />
+            <ZXingScanner onScan={handleScan} />
           ) : (
             <div style={{
               height: '50vh',
