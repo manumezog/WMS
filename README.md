@@ -6,13 +6,20 @@ A modern, mobile-first warehouse management system with barcode scanning capabil
 ![Firebase](https://img.shields.io/badge/Firebase-12.6.0-FFCA28?style=for-the-badge&logo=firebase&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7.2.5-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 
+## 🚀 Live Demo
+
+**[Try it now!](https://mezwms-2a876.web.app)** - Deployed on Firebase Hosting
+
+> **Note:** Click the green "⚡ Setup" button on the Scanner page to add test products for full functionality testing.
+
 ---
 
 ## 🌟 Features
 
 ### 📱 Scanner View
 
-- **Live Barcode Scanning** - Real-time camera-based barcode detection using `html5-qrcode`
+- **Live Barcode Scanning** - Real-time camera-based barcode detection using `@zxing/library` for enhanced accuracy
+- **📸 Image Upload** - Upload barcode photos from gallery or take new photos
 - **Manual Entry** - Keyboard input for GTIN/EAN codes
 - **Product Information Display** - Instant product details with stock levels
 - **Inventory Actions**:
@@ -20,6 +27,7 @@ A modern, mobile-first warehouse management system with barcode scanning capabil
   - 📤 **Remove** - Subtract stock from inventory
   - 🔍 **Consult** - View current inventory levels
 - **Visual Feedback** - Animated scan frame and haptic feedback
+- **⚡ Quick Setup** - One-click test data setup for instant testing
 
 ### 📊 Dashboard View
 
@@ -29,14 +37,14 @@ A modern, mobile-first warehouse management system with barcode scanning capabil
   - Products with Stock
   - Low Stock Alerts (< 5 units)
 - **Top Products** - Display top 10 products by quantity
-- **Transaction History** - Recent inventory movements with timestamps
+- **Transaction History** - Recent inventory movements with timestamps and type badges
 - **Auto-Refresh** - One-click data refresh
 
 ### 🏷️ Barcode Generator
 
 - **Random Product Selection** - Generate barcodes for any product in database
 - **In-Stock Filter** - Generate barcodes only for products with inventory
-- **Manual GTIN Entry** - Create barcodes for custom GTIN codes
+- **Manual GTIN Entry** - Create barcodes for custom GTIN codes (full-width mobile-optimized layout)
 - **Download & Print** - Export barcodes as PNG or print directly
 - **EAN-13 Format** - Industry-standard barcode generation
 
@@ -69,7 +77,8 @@ A modern, mobile-first warehouse management system with barcode scanning capabil
 
 ### Barcode & Scanning
 
-- **html5-qrcode 2.3.8** - Camera-based barcode scanning
+- **@zxing/library 0.21.3** - Enhanced barcode scanning with better EAN-13 detection
+- **html5-qrcode 2.3.8** - Fallback barcode scanning library
 - **jsbarcode 3.12.1** - Barcode generation library
 
 ### Data Visualization
@@ -145,18 +154,13 @@ npm install
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
 2. Enable Firestore Database
 3. Enable Firebase Hosting
-4. Copy your Firebase config to `src/config/firebase.js`
+4. Copy `.env.example` to `.env` and fill in your Firebase credentials:
 
-```javascript
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
+```bash
+cp .env.example .env
 ```
+
+5. Update the values in `.env` with your Firebase project details from your Firebase console
 
 ### 4️⃣ Import Product Data
 
@@ -181,7 +185,16 @@ Visit `http://localhost:5173` to see the app running!
 
 ## 📱 Usage Guide
 
+### Getting Started - Quick Setup
+
+1. **Open the app**: Navigate to the Scanner view
+2. **Click "⚡ Setup"** button (green button at bottom)
+3. **Click "Add Test Products"** to populate database with 5 test items
+4. **Start scanning!** Try any of the three scanning methods below
+
 ### Scanning Products
+
+**Method 1: Live Camera Scan (Default)**
 
 1. **Grant Camera Permission** when prompted
 2. **Point camera** at barcode (EAN-13 or EAN-8 format)
@@ -190,12 +203,30 @@ Visit `http://localhost:5173` to see the app running!
 5. **Adjust quantity** using +/- buttons or input field
 6. **Confirm action** to update inventory
 
-### Manual Entry
+**Method 2: Image Upload**
 
-1. Click **"⌨️ Manual Entry"** button
+1. Click **"📸 Upload"** button
+2. **Take a photo** of barcode or **select existing photo** from gallery
+3. App will **automatically scan** the barcode from image
+4. **View product details** if found
+5. **Proceed with inventory actions**
+
+**Method 3: Manual Entry**
+
+1. Click **"⌨️ Manual"** button
 2. Enter **13-digit GTIN** code
 3. Click **"Scan"** to lookup product
 4. Proceed with inventory actions
+
+### Test GTINs
+
+Use these codes to test the app (after running Quick Setup):
+
+- `5000112576009` - Test Product - Coca Cola
+- `4006809087906` - Test Product - Nivea Cream
+- `8076809514118` - Test Product - Nutella
+- `5449000000996` - Test Product - Coca Cola Zero
+- `3017620422003` - Test Product - Nutella 750g
 
 ### Viewing Dashboard
 
@@ -325,12 +356,13 @@ Your app will be live at: `https://YOUR_PROJECT_ID.web.app`
 
 ---
 
-## 🐛 Known Issues
+## 🐛 Known Issues & Limitations
 
-- CSV data must be imported manually (no UI yet)
-- Camera permissions required for scanner (browser-dependent)
-- Large datasets may require pagination implementation
-- Print functionality varies by browser
+- **Test Data Required** - Use Quick Setup (⚡ button) to add test products before scanning
+- **Camera permissions required** for live scanner (browser-dependent)
+- **Firestore rules** need ~30 seconds to propagate after first deployment
+- **Large datasets** may require pagination implementation (current limit: top 10 products, last 20 transactions)
+- **Print functionality** varies by browser and device
 
 ---
 
@@ -354,6 +386,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgments
 
+- [@zxing/library](https://github.com/zxing-js/library) - Enhanced barcode scanning with superior detection
 - [html5-qrcode](https://github.com/mebjas/html5-qrcode) - Barcode scanning library
 - [JsBarcode](https://github.com/lindell/JsBarcode) - Barcode generation
 - [Firebase](https://firebase.google.com/) - Backend infrastructure
