@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import BarcodeScanner from './BarcodeScanner';
-import ZXingScanner from './ZXingScanner';
 import ProductCard from './ProductCard';
 import ActionPanel from './ActionPanel';
 import QuickStart from '../QuickStart/QuickStart';
@@ -24,45 +23,47 @@ const ScannerView = () => {
     error,
     clearError,
     addToScanHistory,
-    resetQuantity
+    resetQuantity,
+    setIsScanning
   } = useStore();
 
+  // Ensure scanning stops when component unmounts
   useEffect(() => {
-    // Clear success message after 3 seconds
+    setIsScanning(true);
+    return () => setIsScanning(false);
+  }, [setIsScanning]);
+
+  useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => {
-        clearSuccessMessage();
-      }, 3000);
+      const timer = setTimeout(() => clearSuccessMessage(), 3000);
       return () => clearTimeout(timer);
     }
   }, [successMessage, clearSuccessMessage]);
 
   useEffect(() => {
-    // Clear error after 5 seconds
     if (error) {
-      const timer = setTimeout(() => {
-        clearError();
-      }, 5000);
+      const timer = setTimeout(() => clearError(), 4000);
       return () => clearTimeout(timer);
     }
   }, [error, clearError]);
 
   const handleScan = async (gtin) => {
+    // If we already have a product open, ignore new scans until cleared
+    if (scannedProduct) return;
+
     setIsLoading(true);
     setError(null);
     
     try {
+      if (navigator.vibrate) navigator.vibrate(50);
+
       // Fetch product data
       const product = await getProductByGtin(gtin);
       
       if (!product) {
-        setError(`Product not found for GTIN: ${gtin}. Please import product data first.`);
+        setError(`Product not found: ${gtin}`);
         setIsLoading(false);
         // Don't set scannedProduct to null - let user try scanning again
-        // Auto-clear error after 4 seconds
-        setTimeout(() => {
-          clearError();
-        }, 4000);
         return;
       }
 
@@ -71,24 +72,16 @@ const ScannerView = () => {
       
       setScannedProduct(product);
       setInventory(inventoryData);
+      setManualMode(false); // Close manual mode if open
       
-      // Add to scan history
       addToScanHistory({
         gtin,
         productName: product.productName,
         timestamp: new Date().toISOString()
       });
       
-      // Vibrate on successful scan
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
     } catch (err) {
-      setError(`Error scanning product: ${err.message}`);
-      // Auto-clear error after 4 seconds
-      setTimeout(() => {
-        clearError();
-      }, 4000);
+      setError(`Error: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +92,6 @@ const ScannerView = () => {
     if (manualInput.trim()) {
       handleScan(manualInput.trim());
       setManualInput('');
-      setManualMode(false);
     }
   };
 
@@ -110,14 +102,9 @@ const ScannerView = () => {
     try {
       const hints = new Map();
       const formats = [
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E,
-        BarcodeFormat.QR_CODE,
-        BarcodeFormat.ITF
+        BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+        BarcodeFormat.QR_CODE, BarcodeFormat.ITF
       ];
       hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
       hints.set(DecodeHintType.TRY_HARDER, true);
@@ -125,7 +112,6 @@ const ScannerView = () => {
       const codeReader = new BrowserMultiFormatReader(hints);
       const imageUrl = URL.createObjectURL(file);
       
-      // Try decoding with hints
       const result = await codeReader.decodeFromImageUrl(imageUrl);
       
       if (result) {
@@ -133,12 +119,11 @@ const ScannerView = () => {
       }
     } catch (err) {
       console.error('Failed to scan image:', err);
-      setError('No barcode detected in image');
-      setTimeout(() => clearError(), 4000);
+      setError('No barcode detected');
     }
   };
 
-  const handleRescan = () => {
+  const handleCloseProduct = () => {
     setScannedProduct(null);
     setInventory(null);
     resetQuantity();
@@ -147,7 +132,6 @@ const ScannerView = () => {
   };
 
   const handleActionComplete = async () => {
-    // Refresh inventory data
     if (scannedProduct) {
       const updatedInventory = await getInventoryByGtin(scannedProduct.gtin || scannedProduct.id);
       setInventory(updatedInventory);
@@ -156,249 +140,102 @@ const ScannerView = () => {
 
   return (
     <div className="scanner-view">
-      {/* Status Messages */}
+      {/* 1. Full Screen Camera Background */}
+      <BarcodeScanner onScan={handleScan} />
+
+      {/* 2. Messages/Alerts */}
       {successMessage && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: '#22c55e',
-          color: 'white',
-          padding: '12px 24px',
-          borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(34,197,94,0.3)',
-          zIndex: 1000,
-          animation: 'slideDown 0.3s ease-out',
-          maxWidth: '90%',
-          textAlign: 'center',
-          fontWeight: 500
-        }}>
-          {successMessage}
+        <div className="message-pill success">
+          <span>✅</span> {successMessage}
         </div>
       )}
-
       {error && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: '#ef4444',
-          color: 'white',
-          padding: '12px 24px',
-          borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(239,68,68,0.3)',
-          zIndex: 1000,
-          animation: 'slideDown 0.3s ease-out',
-          maxWidth: '90%',
-          textAlign: 'center',
-          fontWeight: 500
-        }}>
-          {error}
+        <div className="message-pill error">
+          <span>⚠️</span> {error}
         </div>
       )}
 
-      {/* Scanner or Manual Input */}
-      {!scannedProduct ? (
-        <>
-          {!manualMode ? (
-            <BarcodeScanner onScan={handleScan} />
-          ) : (
-            <div style={{
-              height: '50vh',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2rem'
-            }}>
-              <form onSubmit={handleManualSubmit} style={{ width: '100%', maxWidth: '400px' }}>
-                <h3 style={{ color: 'white', marginBottom: '1rem', textAlign: 'center' }}>
-                  Enter Barcode Manually
-                </h3>
-                <input
-                  type="text"
-                  value={manualInput}
-                  onChange={(e) => setManualInput(e.target.value)}
-                  placeholder="Enter GTIN/EAN number"
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    padding: '1rem',
-                    fontSize: '18px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    marginBottom: '1rem',
-                    textAlign: 'center',
-                    fontFamily: 'monospace'
-                  }}
-                />
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setManualMode(false)}
-                    style={{
-                      flex: 1,
-                      padding: '1rem',
-                      borderRadius: '12px',
-                      border: '2px solid white',
-                      background: 'transparent',
-                      color: 'white',
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    style={{
-                      flex: 1,
-                      padding: '1rem',
-                      borderRadius: '12px',
-                      border: 'none',
-                      background: 'white',
-                      color: '#667eea',
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Scan
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+      {/* 3. Bottom Controls Ribbon (Visible when no product is selected) */}
+      {!scannedProduct && (
+        <div className="scanner-controls-ribbon">
+          <button className="control-btn" onClick={() => setManualMode(true)}>
+            <span className="btn-icon">⌨️</span>
+            <span className="btn-label">Enter Code</span>
+          </button>
           
-          {/* Manual Entry Toggle */}
-          <div style={{
-            padding: '1rem',
-            display: 'flex',
-            gap: '0.5rem',
-            justifyContent: 'center',
-            background: 'white'
-          }}>
-            <button
-              onClick={() => setManualMode(!manualMode)}
-              style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                padding: '12px 20px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                flex: 1
-              }}
-            >
-              <span>{manualMode ? '📷' : '⌨️'}</span>
-              {manualMode ? 'Use Camera' : 'Manual Entry'}
-            </button>
-            
-            <label
-              htmlFor="photo-upload"
-              style={{
-                background: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                padding: '12px 20px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                flex: 1
-              }}
-            >
-              <span>📁</span>
-              Upload Photo
+          <label className="control-btn">
+            <span className="btn-icon">📁</span>
+            <span className="btn-label">Upload</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+            />
+          </label>
+
+          <button className="control-btn" onClick={() => setShowQuickStart(true)}>
+            <span className="btn-icon">⚡</span>
+            <span className="btn-label">Setup</span>
+          </button>
+        </div>
+      )}
+
+      {/* 4. Manual Entry Modal */}
+      {manualMode && (
+        <div className="manual-entry-overlay" onClick={() => setManualMode(false)}>
+          <div className="manual-entry-card" onClick={e => e.stopPropagation()}>
+            <h3>Enter Barcode</h3>
+            <form onSubmit={handleManualSubmit}>
               <input
-                id="photo-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
+                type="text"
+                className="manual-input-large"
+                value={manualInput}
+                onChange={(e) => setManualInput(e.target.value)}
+                placeholder="123456789"
+                autoFocus
               />
-            </label>
-            
-            
-            <button
-              onClick={() => setShowQuickStart(true)}
-              style={{
-                background: '#22c55e',
-                color: 'white',
-                border: 'none',
-                padding: '12px 20px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              title="Add test products to database"
-            >
-              <span>⚡</span>
-              Setup
-            </button>
+              <div className="manual-actions">
+                <button type="button" className="action-btn remove" onClick={() => setManualMode(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="action-btn receive">
+                  Scan
+                </button>
+              </div>
+            </form>
           </div>
-        </>
-      ) : (
-        <>
-          {/* Scanned Product Display */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            paddingBottom: '1rem'
-          }}>
+        </div>
+      )}
+
+      {/* 5. Product Result Overlay (Slide up) */}
+      {scannedProduct && (
+        <div className="product-result-overlay">
+          <div className="result-content">
+             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <div style={{ width: '40px', height: '5px', background: '#cbd5e1', borderRadius: '3px' }}></div>
+             </div>
             <ProductCard product={scannedProduct} inventory={inventory} />
             <ActionPanel 
               product={scannedProduct} 
               onActionComplete={handleActionComplete}
             />
-            
-            {/* Rescan Button */}
-            <div style={{ padding: '0 1rem 100px 1rem' }}>
-              <button
-                onClick={handleRescan}
-                style={{
-                  width: '100%',
-                  padding: '1rem',
-                  background: 'white',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  borderRadius: '12px',
-                  color: '#667eea',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                }}
-              >
-                <span>🔄</span> Scan Another Product
-              </button>
-            </div>
+            <button 
+              className="action-btn remove" 
+              style={{ marginTop: '1rem', width: '100%' }}
+              onClick={handleCloseProduct}
+            >
+              Scan Next Product
+            </button>
           </div>
-        </>
+        </div>
       )}
-      
+
       {/* QuickStart Modal */}
       {showQuickStart && (
-        <QuickStart onClose={() => setShowQuickStart(false)} />
+         <div style={{ position: 'fixed', inset: 0, zIndex: 100 }}>
+             <QuickStart onClose={() => setShowQuickStart(false)} />
+         </div>
       )}
     </div>
   );

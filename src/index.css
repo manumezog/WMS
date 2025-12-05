@@ -1,22 +1,48 @@
 /* Root and Typography */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  /* Color System */
-  --primary: #667eea;
-  --primary-dark: #764ba2;
-  --success: #22c55e;
+  /* Brand Colors - Professional & Elegant */
+  --primary: #2563eb; /* Royal Blue */
+  --primary-dark: #1e3a8a; /* Deep Blue */
+  --primary-light: #eff6ff; /* Light Blue Tint */
+
+  --secondary: #475569; /* Slate */
+
+  /* Semantic Colors */
+  --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
-  --text-dark: #2d3748;
-  --text-gray: #718096;
-  --bg-light: #f7fafc;
+  --info: #3b82f6;
+
+  /* Suraces & Text */
+  --bg-app: #f8fafc; /* Very light slate - for app background */
+  --bg-card: #ffffff;
+  --bg-overlay: rgba(255, 255, 255, 0.85);
+
+  --text-main: #1e293b; /* Slate 800 */
+  --text-secondary: #64748b; /* Slate 500 */
+  --text-tertiary: #94a3b8; /* Slate 400 */
+
+  --border-light: #e2e8f0;
+
+  /* Effects */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 
   color-scheme: light;
-  background-color: #ffffff;
-  
+  background-color: var(--bg-app);
+  color: var(--text-main);
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -35,7 +61,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
-  background: #ffffff;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 #root {

@@ -4,14 +4,18 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0.5rem 0;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-  z-index: 100;
-  border-top: 1px solid #e2e8f0;
+  padding: 0.75rem 0.5rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); /* Safe area support */
+  box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.1);
+  z-index: 9999; /* Ensure it is on top of everything */
+  border-top: 1px solid rgba(25, 25, 25, 0.1);
+  touch-action: none; /* Prevent double-tap zoom issues */
 }
 
 .nav-item {
@@ -19,84 +23,87 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   padding: 0.5rem 1rem;
   border: none;
   background: transparent;
   cursor: pointer;
-  transition: all 0.2s;
-  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-lg);
   min-width: 80px;
   position: relative;
+  color: var(--text-secondary);
+  user-select: none; /* Prevent text selection on long press */
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent; /* Remove default tap highlight */
 }
 
 .nav-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  transition: width 0.3s ease;
-  border-radius: 0 0 3px 3px;
+  display: none; /* Remove old underline style */
 }
 
-.nav-item.active::before {
-  width: 40px;
+/* Active State Design - Pill Style */
+.nav-item.active {
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .nav-icon {
   font-size: 24px;
   line-height: 1;
-  transition: transform 0.2s;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: grayscale(100%) opacity(0.7);
 }
 
 .nav-item.active .nav-icon {
-  transform: scale(1.1);
+  transform: translateY(-2px);
+  filter: none;
 }
 
 .nav-label {
   font-size: 11px;
   font-weight: 600;
-  color: #718096;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: color 0.2s;
-}
-
-.nav-item.active .nav-label {
-  color: #667eea;
+  color: currentColor;
+  text-transform: capitalize; /* Cleaner look */
+  letter-spacing: 0.3px;
 }
 
 .nav-item:hover {
-  background: #f7fafc;
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--primary-dark);
+}
+
+.nav-item.active:hover {
+  background: var(--primary-light);
 }
 
 .nav-item:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 /* Responsive Design */
 @media (min-width: 768px) {
   .bottom-navigation {
-    padding: 0.75rem 0;
-    max-width: 1200px;
+    padding: 1rem 0;
+    max-width: 800px;
     left: 50%;
     transform: translateX(-50%);
-    border-radius: 16px 16px 0 0;
+    bottom: 24px; /* Floating look on desktop */
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-lg);
   }
 
   .nav-item {
-    min-width: 100px;
+    min-width: 120px;
+    padding: 0.75rem 1.5rem;
   }
 
   .nav-icon {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .nav-label {
-    font-size: 12px;
+    font-size: 13px;
   }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getDashboardData } from '../../services/firebaseService';
 import useStore from '../../store/useStore';
+import warehouseHero from '../../assets/images/warehouse-robots.jpg';
 import './Dashboard.css';
 
 const DashboardView = () => {
@@ -77,6 +78,11 @@ const DashboardView = () => {
         <button onClick={loadDashboardData} className="refresh-btn">
           🔄 Refresh
         </button>
+      </div>
+
+      <div className="hero-banner">
+         <img src={warehouseHero} alt="Warehouse Overview" className="hero-image" />
+         <div className="hero-overlay"></div>
       </div>
 
       {/* KPI Cards */}

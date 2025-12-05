@@ -77,8 +77,8 @@ const BarcodeScanner = ({ onScan }) => {
   }
 
   return (
-    <div className="barcode-scanner-container">
-      <div id="barcode-scanner" ref={scannerRef} className="scanner-viewport"></div>
+    <div className="barcode-scanner-container" style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundColor: '#000' }}>
+      <div id="barcode-scanner" ref={scannerRef} className="scanner-viewport" style={{ width: '100%', height: '100%', minHeight: '100vh' }}></div>
       <div className="scanner-overlay">
         <div className="scanner-frame">
           <div className="corner top-left"></div>
