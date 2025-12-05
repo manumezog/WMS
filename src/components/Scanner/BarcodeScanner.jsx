@@ -18,13 +18,20 @@ const BarcodeScanner = ({ onScan }) => {
         
         const config = {
           fps: 10,
-          qrbox: { width: 280, height: 150 },
+          qrbox: { width: 250, height: 150 },
           aspectRatio: 1.777778,
-          formatsToSupport: [0, 1] // EAN_13, EAN_8
+          formatsToSupport: [0, 1], // EAN_13, EAN_8
+          disableFlip: false,
+          videoConstraints: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
         };
 
+        // Request camera with explicit constraints
         await html5QrCodeRef.current.start(
-          { facingMode: "environment" },
+          { facingMode: { ideal: "environment" } },
           config,
           (decodedText, decodedResult) => {
             // Successful scan
@@ -41,8 +48,29 @@ const BarcodeScanner = ({ onScan }) => {
         setIsInitialized(true);
       } catch (err) {
         console.error('Scanner initialization error:', err);
-        if (err.toString().includes('Permission')) {
+        if (err.toString().includes('Permission') || err.toString().includes('NotAllowed')) {
           setCameraPermission('denied');
+        } else {
+          // Try again with simpler constraints
+          try {
+            await html5QrCodeRef.current.start(
+              { facingMode: "environment" },
+              {
+                fps: 10,
+                qrbox: 250,
+                formatsToSupport: [0, 1]
+              },
+              (decodedText) => {
+                if (onScan) onScan(decodedText);
+              },
+              () => {}
+            );
+            setCameraPermission('granted');
+            setIsInitialized(true);
+          } catch (retryErr) {
+            console.error('Retry failed:', retryErr);
+            setCameraPermission('denied');
+          }
         }
       }
     };

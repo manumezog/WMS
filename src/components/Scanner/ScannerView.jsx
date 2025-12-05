@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import BarcodeScanner from './BarcodeScanner';
 import ProductCard from './ProductCard';
 import ActionPanel from './ActionPanel';
+import QuickStart from '../QuickStart/QuickStart';
 import useStore from '../../store/useStore';
 import { getProductByGtin, getInventoryByGtin } from '../../services/firebaseService';
 import './Scanner.css';
@@ -11,6 +12,7 @@ const ScannerView = () => {
   const [inventory, setInventory] = useState(null);
   const [manualMode, setManualMode] = useState(false);
   const [manualInput, setManualInput] = useState('');
+  const [showQuickStart, setShowQuickStart] = useState(false);
   
   const { 
     setError, 
@@ -52,9 +54,13 @@ const ScannerView = () => {
       const product = await getProductByGtin(gtin);
       
       if (!product) {
-        setError(`Product not found for GTIN: ${gtin}`);
-        setScannedProduct(null);
-        setInventory(null);
+        setError(`Product not found for GTIN: ${gtin}. Please import product data first.`);
+        setIsLoading(false);
+        // Don't set scannedProduct to null - let user try scanning again
+        // Auto-clear error after 4 seconds
+        setTimeout(() => {
+          clearError();
+        }, 4000);
         return;
       }
 
@@ -77,8 +83,10 @@ const ScannerView = () => {
       }
     } catch (err) {
       setError(`Error scanning product: ${err.message}`);
-      setScannedProduct(null);
-      setInventory(null);
+      // Auto-clear error after 4 seconds
+      setTimeout(() => {
+        clearError();
+      }, 4000);
     } finally {
       setIsLoading(false);
     }
@@ -232,6 +240,7 @@ const ScannerView = () => {
           <div style={{
             padding: '1rem',
             display: 'flex',
+            gap: '0.5rem',
             justifyContent: 'center',
             background: 'white'
           }}>
@@ -241,7 +250,28 @@ const ScannerView = () => {
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 color: 'white',
                 border: 'none',
-                padding: '12px 24px',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flex: 1
+              }}
+            >
+              <span>{manualMode ? '📷' : '⌨️'}</span>
+              {manualMode ? 'Use Camera' : 'Manual Entry'}
+            </button>
+            
+            <button
+              onClick={() => setShowQuickStart(true)}
+              style={{
+                background: '#22c55e',
+                color: 'white',
+                border: 'none',
+                padding: '12px 20px',
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: 600,
@@ -250,9 +280,10 @@ const ScannerView = () => {
                 alignItems: 'center',
                 gap: '8px'
               }}
+              title="Add test products to database"
             >
-              <span>{manualMode ? '📷' : '⌨️'}</span>
-              {manualMode ? 'Use Camera' : 'Manual Entry'}
+              <span>⚡</span>
+              Setup
             </button>
           </div>
         </>
@@ -297,6 +328,11 @@ const ScannerView = () => {
             </div>
           </div>
         </>
+      )}
+      
+      {/* QuickStart Modal */}
+      {showQuickStart && (
+        <QuickStart onClose={() => setShowQuickStart(false)} />
       )}
     </div>
   );

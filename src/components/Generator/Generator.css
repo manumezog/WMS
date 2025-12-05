@@ -90,6 +90,7 @@
 /* Manual Form */
 .manual-form {
   display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   padding-top: 0.5rem;
   border-top: 1px solid #e2e8f0;

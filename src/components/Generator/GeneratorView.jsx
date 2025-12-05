@@ -234,6 +234,7 @@ const GeneratorView = () => {
             type="submit"
             disabled={loading}
             className="gen-btn secondary"
+            style={{ width: '100%' }}
           >
             <span className="btn-icon">✏️</span>
             <span className="btn-text">Generate</span>
