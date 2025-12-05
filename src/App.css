@@ -1,0 +1,17 @@
+/* App Container */
+.app-container {
+  position: relative;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove default margins */
+* {
+  box-sizing: border-box;
+}
