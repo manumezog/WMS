@@ -18,14 +18,15 @@ A modern, mobile-first warehouse management system with barcode scanning capabil
 
 ### 📱 Scanner View
 
-- **Live Barcode Scanning** - Real-time camera-based barcode detection using `@zxing/library` for enhanced accuracy
-- **📸 Image Upload** - Upload barcode photos from gallery or take new photos
+- **Live Barcode Scanning** - Robust EAN-13, EAN-8, and Code128 scanning using `html5-qrcode` (optimized for stability)
+- **📸 Image Upload** - Upload barcode photos/screenshots using `@zxing/library` for reliable static image decoding
 - **Manual Entry** - Keyboard input for GTIN/EAN codes
 - **Product Information Display** - Instant product details with stock levels
 - **Inventory Actions**:
   - 📥 **Receive** - Add stock to inventory
   - 📤 **Remove** - Subtract stock from inventory
   - 🔍 **Consult** - View current inventory levels
+- **Flexible Quantity Input** - Free-typing field with validation (supports deleting and custom values)
 - **Visual Feedback** - Animated scan frame and haptic feedback
 - **⚡ Quick Setup** - One-click test data setup for instant testing
 
@@ -44,18 +45,20 @@ A modern, mobile-first warehouse management system with barcode scanning capabil
 
 - **Random Product Selection** - Generate barcodes for any product in database
 - **In-Stock Filter** - Generate barcodes only for products with inventory
-- **Manual GTIN Entry** - Create barcodes for custom GTIN codes (full-width mobile-optimized layout)
-- **Download & Print** - Export barcodes as PNG or print directly
-- **EAN-13 Format** - Industry-standard barcode generation
+- **Manual GTIN Entry** - Create barcodes for custom GTIN codes
+- **Smart Fallback** - Automatically switches to CODE128 for non-standard IDs
+- **👁️ Full Screen View** - High-contrast modal for easy scanning from other devices
+- **Download & Print** - Export as PNG or print instantly (invisible iframe implementation for mobile)
+- **EAN-13 & Code128** - Supports industry-standard and internal barcode formats
 
 ### 🎨 Modern UI/UX
 
 - **Mobile-First Design** - Optimized for smartphones and tablets
 - **Responsive Layout** - Seamless experience across all devices
-- **Smooth Animations** - Polished micro-interactions
 - **Touch-Friendly** - Large buttons and intuitive gestures
 - **Dark Gradients** - Beautiful purple/blue gradient theme
 - **Bottom Navigation** - Easy thumb-accessible navigation
+- **PWA Ready** - Designed to work like a native app
 
 ---
 
@@ -77,9 +80,9 @@ A modern, mobile-first warehouse management system with barcode scanning capabil
 
 ### Barcode & Scanning
 
-- **@zxing/library 0.21.3** - Enhanced barcode scanning with better EAN-13 detection
-- **html5-qrcode 2.3.8** - Fallback barcode scanning library
-- **jsbarcode 3.12.1** - Barcode generation library
+- **html5-qrcode 2.3.8** - Primary live camera scanning engine (optimized for mobile stability)
+- **@zxing/library 0.21.3** - Specialized image upload decoder
+- **jsbarcode 3.12.1** - Robust barcode generation with multi-format support
 
 ### Data Visualization
 
@@ -362,7 +365,6 @@ Your app will be live at: `https://YOUR_PROJECT_ID.web.app`
 - **Camera permissions required** for live scanner (browser-dependent)
 - **Firestore rules** need ~30 seconds to propagate after first deployment
 - **Large datasets** may require pagination implementation (current limit: top 10 products, last 20 transactions)
-- **Print functionality** varies by browser and device
 
 ---
 

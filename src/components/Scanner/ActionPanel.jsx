@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useStore from '../../store/useStore';
 import { updateInventory, recordTransaction, getInventoryByGtin } from '../../services/firebaseService';
 import './Scanner.css';
@@ -17,10 +17,32 @@ const ActionPanel = ({ product, onActionComplete }) => {
   
   const [showConsultModal, setShowConsultModal] = useState(false);
   const [consultData, setConsultData] = useState(null);
+  
+  // Local state for free typing before validation
+  const [inputValue, setInputValue] = useState(quantity.toString());
+
+  // Sync local input with store quantity
+  useEffect(() => {
+    setInputValue(quantity.toString());
+  }, [quantity]);
 
   const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value) || 1;
-    setQuantity(value);
+    const val = e.target.value;
+    setInputValue(val);
+    
+    // Update store immediately for valid numbers, but allow empty/partial input in UI
+    if (val !== '') {
+      const num = parseInt(val);
+      if (!isNaN(num)) {
+        // Store clamps 1-100 automatically
+        setQuantity(num);
+      }
+    }
+  };
+  
+  const handleBlur = () => {
+    // On blur, force UI to match the valid store value (handling empty/invalid cases)
+    setInputValue(quantity.toString());
   };
 
   const handleAction = async (actionType) => {
@@ -98,8 +120,9 @@ const ActionPanel = ({ product, onActionComplete }) => {
             <input
               type="number"
               className="quantity-input"
-              value={quantity}
+              value={inputValue}
               onChange={handleQuantityChange}
+              onBlur={handleBlur}
               min="1"
               max="100"
             />
