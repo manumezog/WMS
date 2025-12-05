@@ -10,8 +10,10 @@ const GeneratorView = () => {
   const [manualGtin, setManualGtin] = useState('');
 
   const generateBarcode = (gtin) => {
+    const canvas = document.createElement('canvas');
+    
     try {
-      const canvas = document.createElement('canvas');
+      // Try EAN13 first (standard for retail products)
       JsBarcode(canvas, gtin, {
         format: 'EAN13',
         width: 2,
@@ -22,8 +24,23 @@ const GeneratorView = () => {
       });
       return canvas.toDataURL('image/png');
     } catch (err) {
-      console.error('Barcode generation error:', err);
-      return null;
+      // If EAN13 fails (e.g. invalid checksum or length), fallback to CODE128
+      // CODE128 can encode almost any ASCII string
+      try {
+        console.warn(`EAN13 generation failed for ${gtin}, falling back to CODE128`);
+        JsBarcode(canvas, gtin, {
+          format: 'CODE128',
+          width: 2,
+          height: 100,
+          displayValue: true,
+          fontSize: 16,
+          margin: 10
+        });
+        return canvas.toDataURL('image/png');
+      } catch (err2) {
+        console.error('Barcode generation error:', err2);
+        return null;
+      }
     }
   };
 
