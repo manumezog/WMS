@@ -32,8 +32,27 @@
 #barcode-scanner video {
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover;
-  display: block;
+  object-fit: cover !important;
+  display: block !important;
+  background: #000;
+}
+
+/* Hide html5-qrcode's built-in file select button */
+#barcode-scanner__scan_region {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#barcode-scanner__dashboard_section {
+  display: none !important;
+}
+
+#barcode-scanner__dashboard_section_csr {
+  display: none !important;
+}
+
+#barcode-scanner button {
+  display: none !important;
 }
 
 /* Scanner Overlay */

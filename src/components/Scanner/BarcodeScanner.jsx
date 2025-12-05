@@ -16,61 +16,36 @@ const BarcodeScanner = ({ onScan }) => {
       try {
         html5QrCodeRef.current = new Html5Qrcode("barcode-scanner");
         
+        // Simpler, more compatible config
         const config = {
           fps: 10,
           qrbox: { width: 250, height: 150 },
-          aspectRatio: 1.777778,
-          formatsToSupport: [0, 1], // EAN_13, EAN_8
-          disableFlip: false,
-          videoConstraints: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
+          formatsToSupport: [0, 1] // EAN_13, EAN_8
         };
 
-        // Request camera with explicit constraints
+        // Use 'environment' for rear camera on mobile
+        const cameraConfig = { facingMode: "environment" };
+
         await html5QrCodeRef.current.start(
-          { facingMode: { ideal: "environment" } },
+          cameraConfig,
           config,
-          (decodedText, decodedResult) => {
-            // Successful scan
+          (decodedText) => {
             if (onScan) {
               onScan(decodedText);
             }
           },
-          (errorMessage) => {
-            // Scan error (ignore, continuous scanning)
+          () => {
+            // Scan error - ignore
           }
         );
 
+        console.log('✅ Camera started successfully');
         setCameraPermission('granted');
         setIsInitialized(true);
       } catch (err) {
-        console.error('Scanner initialization error:', err);
-        if (err.toString().includes('Permission') || err.toString().includes('NotAllowed')) {
+        console.error('❌ Scanner initialization error:', err);
+        if (err.name === 'NotAllowedError' || err.message.includes('Permission')) {
           setCameraPermission('denied');
-        } else {
-          // Try again with simpler constraints
-          try {
-            await html5QrCodeRef.current.start(
-              { facingMode: "environment" },
-              {
-                fps: 10,
-                qrbox: 250,
-                formatsToSupport: [0, 1]
-              },
-              (decodedText) => {
-                if (onScan) onScan(decodedText);
-              },
-              () => {}
-            );
-            setCameraPermission('granted');
-            setIsInitialized(true);
-          } catch (retryErr) {
-            console.error('Retry failed:', retryErr);
-            setCameraPermission('denied');
-          }
         }
       }
     };
@@ -85,38 +60,6 @@ const BarcodeScanner = ({ onScan }) => {
       }
     };
   }, [isScanning, onScan, setCameraPermission]);
-
-  const handleRescan = async () => {
-    if (html5QrCodeRef.current && !html5QrCodeRef.current.isScanning) {
-      try {
-        await html5QrCodeRef.current.start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 280, height: 150 },
-            aspectRatio: 1.777778,
-            formatsToSupport: [0, 1]
-          },
-          (decodedText) => {
-            if (onScan) {
-              onScan(decodedText);
-            }
-          },
-          () => {}
-        );
-        setIsScanning(true);
-      } catch (err) {
-        console.error('Rescan error:', err);
-      }
-    }
-  };
-
-  const stopScanner = async () => {
-    if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
-      await html5QrCodeRef.current.stop();
-      setIsScanning(false);
-    }
-  };
 
   if (cameraPermission === 'denied') {
     return (

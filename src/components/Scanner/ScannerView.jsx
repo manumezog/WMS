@@ -102,6 +102,24 @@ const ScannerView = () => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      const scanner = new Html5Qrcode('temp-scanner');
+      const result = await scanner.scanFile(file, true);
+      if (result) {
+        handleScan(result);
+      }
+    } catch (err) {
+      console.error('Failed to scan image:', err);
+      setError('No barcode detected in image');
+      setTimeout(() => clearError(), 4000);
+    }
+  };
+
   const handleRescan = () => {
     setScannedProduct(null);
     setInventory(null);
@@ -167,7 +185,7 @@ const ScannerView = () => {
       {!scannedProduct ? (
         <>
           {!manualMode ? (
-            <ZXingScanner onScan={handleScan} />
+            <BarcodeScanner onScan={handleScan} />
           ) : (
             <div style={{
               height: '50vh',
@@ -266,6 +284,35 @@ const ScannerView = () => {
               {manualMode ? 'Use Camera' : 'Manual Entry'}
             </button>
             
+            <label
+              htmlFor="photo-upload"
+              style={{
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flex: 1
+              }}
+            >
+              <span>📁</span>
+              Upload Photo
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
+            
+            
             <button
               onClick={() => setShowQuickStart(true)}
               style={{
@@ -304,7 +351,7 @@ const ScannerView = () => {
             />
             
             {/* Rescan Button */}
-            <div style={{ padding: '0 1rem' }}>
+            <div style={{ padding: '0 1rem 100px 1rem' }}>
               <button
                 onClick={handleRescan}
                 style={{
